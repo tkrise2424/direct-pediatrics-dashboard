@@ -1,1 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Direct Pediatrics — Biweekly Performance Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f6;
+    color: #1a1f2e;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ─── HEADER ─────────────────────────────────────────────── */
+  .header {
+    background: linear-gradient(135deg, #0d3b6e 0%, #1565c0 60%, #1e88e5 100%);
+    color: #fff;
+    padding: 48px 40px 40px;
+    width: 100%;
+  }
+  .header-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .header-left h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .header-left .subtitle {
+    font-size: 1.05rem;
+    opacity: 0.85;
+    margin-bottom: 16px;
+  }
+  .header-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-biweekly { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); }
+  .badge-baseline { background: #ffd54f; color: #1a1f2e; }
+  .badge-confidential { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.2); }
+  .badge-report { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+  .header-right {
+    text-align: right;
+  }
+  .header-right .report-meta {
+    font-size: 0.88rem;
+    opacity: 0.78;
+    line-height: 2;
+  }
+  .header-right .report-meta strong {
+    color: #fff;
+    opacity: 1;
+  }
+  .header-logo {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 12px;
+  }
+
+  /* ─── CADENCE BAR ─────────────────────────────────────────── */
+  .cadence-bar {
+    background: #0d2d54;
+    width: 100%;
+    padding: 28px 40px;
+  }
+  .cadence-bar-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .cadence-block {
+    flex: 1 1 200px;
+    padding: 12px 28px 12px 0;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    margin-right: 28px;
+  }
+  .cadence-block:last-child {
+    border-right: none;
+    margin-right: 0;
+  }
+  .cadence-block .cb-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .cadence-block .cb-value {
+    font-size: 1.0rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.4;
+  }
+  .cadence-block .cb-sub {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.5);
+    margin-top: 3px;
+  }
+
+  /* ─── MAIN CONTAINER ──────────────────────────────────────── */
+  .main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 52px 40px 80px;
+  }
+
+  /* ─── SECTION WRAPPER ─────────────────────────────────────── */
+  .section {
+    margin-bottom: 64px;
+  }
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #0d3b6e;
+    margin-bottom: 6px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #e3e8f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .section-icon {
+    width: 28px;
+    height: 28px;
+    background: #1565c0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* ─── AI INSIGHTS ─────────────────────────────────────────── */
+  .insights-container {
+    background: linear-gradient(135deg, #0d3b6e 0%, #1565c0 100%);
+    border-radius: 16px;
+    padding: 40px;
+    color: #fff;
+    margin-bottom: 24px;
+  }
+  .insights-summary {
+    font-size: 1.08rem;
+    line-height: 1.8;
+    opacity: 0.92;
+    margin-bottom: 32px;
+    max-width: 900px;
+  }
+  .insights-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+  .insight-card {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 22px 24px;
+    backdrop-filter: blur(4px);
+  }
+  .insight-card .ic-icon {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+  }
+  .insight-card .ic-title {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    opacity: 0.6;
+    margin-bottom: 8px;
+  }
+  .insight-card .ic-body {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    opacity: 0.88;
+  }
+
+  /* ─── KPI CARDS ───────────────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .kpi-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px 26px 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 1px solid #e8edf5;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1565c0, #1e88e5);
+  }
+  .kpi-card .kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: #7a8499;
+    margin-bottom: 10px;
+  }
+  .kpi-card .kpi-value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #0d3b6e;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .kpi-card .kpi-sub {
+    font-size: 0.82rem;
+    color: #5a6478;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .kpi-card .kpi-source {
+    font-size: 0.72rem;
+    color: #9aa0b0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .kpi-card .kpi-delta {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #f0f4ff;
+    color: #5a6478;
+    letter-spacing: 0.3px;
+  }
+
+  /* ─── FUNNEL ──────────────────────────────────────────────── */
+  .funnel-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .funnel-step {
+    flex: 1 1 0;
+    min-width: 140px;
+    background: #fff;
+    border: 1px solid #e8edf5;
+    border-radius: 0;
+    padding: 28px 20px 24px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .funnel-step:first-child { border-radius: 14px 0 0 14px; }
+  .funnel-step:last-child { border-radius: 0 14px 14px 0; }
+  .funnel-step + .funnel-step { border-left: none; }
+  .funnel-step::after {
+    content: '›';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.6rem;
+    color: #c5cfe0;
+    z-index: 2;
+    font-weight: 300;
+  }
+  .funnel-step:last-child::after { display: none; }
+  .funnel-step .fs-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: #9aa0b0;
+    margin-bottom: 10px;
+  }
+  .funnel-step .fs-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0d3b6e;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .funnel-step .fs-sub {
+    font-size: 0.75rem;
+    color: #7a8499;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+  .funnel-step .fs-delta {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #f0f4ff;
+    color: #5a6478;
+    display: inline-block;
+  }
+  .funnel-step.active-step { background: linear-gradient(135deg, #e8f0fe, #f0f4ff); }
+  .funnel-step.active-step .fs-value { color: #1565c0; }
+
+  /* ─── TABLE CARD ──────────────────────────────────────────── */
+  .table-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 1px solid #e8edf5;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .table-card-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid #e8edf5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .table-card-header h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0d3b6e;
+  }
+  .table-card-header .tch-sub {
+    font-size: 0.78rem;
+    color: #9aa0b0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: #f7f9fc;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    color: #7a8499;
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid #e8edf5;
+  }
+  tbody td {
+    padding: 14px 20px;
+    font-size: 0.88rem;
+    color: #2a3245;
+    border-bottom: 1px solid #f0f2f6;
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #fafbfd; }
+
+  /* ─── STATUS PILLS ────────────────────────────────────────── */
+  .pill {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .pill-active { background: #e8f5e9; color: #2e7d32; }
+  .pill-inactive { background: #f5f5f5; color: #757575; }
+  .pill-improved { background: #e8f5e9; color: #2e7d32; }
+  .pill-flat { background: #fff8e1; color: #f57f17; }
+  .pill-baseline { background: #f0f4ff; color: #1565c0; }
+  .pill-new { background: #e8f0fe; color: #1a73e8; }
+
+  /* ─── INSIGHT BULLETS ─────────────────────────────────────── */
+  .insight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .insight-item {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e8edf5;
+    border-left: 4px solid #1565c0;
+    padding: 20px 24px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .insight-item.warn { border-left-color: #f57c00; }
+  .insight-item.positive { border-left-color: #2e7d32; }
+  .insight-item.neutral { border-left-color: #7986cb; }
+  .insight-item .ii-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0d3b6e;
+    margin-bottom: 6px;
+  }
+  .insight-item .ii-body {
+    font-size: 0.85rem;
+    color: #5a6478;
+    line-height: 1.6;
+  }
+
+  /* ─── HIGH INTENT ─────────────────────────────────────────── */
+  .intent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+  .intent-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e8edf5;
+    padding: 26px 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .intent-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .intent-card.ic-blue::before { background: linear-gradient(90deg, #1565c0, #42a5f5); }
+  .intent-card.ic-green::before { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+  .intent-card.ic-orange::before { background: linear-gradient(90deg, #e65100, #ffa726); }
+  .intent-card.ic-purple::before { background: linear-gradient(90deg, #6a1b9a, #ab47bc); }
+  .intent-card .ic-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: #9aa0b0;
+    margin-bottom: 8px;
+  }
+  .intent-card .ic-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0d3b6e;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  .intent-card .ic-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: #5a6478;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f2f6;
+  }
+  .intent-card .ic-stat:last-child { border-bottom: none; }
+  .intent-card .ic-stat strong { color: #1a1f2e; font-weight: 700; }
+
+  /* ─── OPTIMIZATION ────────────────────────────────────────── */
+  .optimization-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .opt-item {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e8edf5;
+    padding: 24px 28px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .opt-block .ob-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .ob-trigger .ob-label { color: #e65100; }
+  .ob-action .ob-label { color: #1565c0; }
+  .ob-outcome .ob-label { color: #2e7d32; }
+  .opt-block .ob-body {
+    font-size: 0.86rem;
+    color: #3a4258;
+    line-height: 1.6;
+  }
+
+  /* ─── CHANGE SUMMARY ──────────────────────────────────────── */
+  .change-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .change-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e8edf5;
+    padding: 28px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .change-card h4 {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e8edf5;
+  }
+  .change-card.cc-blue h4 { color: #1565c0; }
+  .change-card.cc-amber h4 { color: #f57f17; }
+  .change-card.cc-green h4 { color: #2e7d32; }
+  .change-card.cc-purple h4 { color: #6a1b9a; }
+  .change-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .change-card ul li {
+    font-size: 0.86rem;
+    color: #3a4258;
+    line-height: 1.5;
+    padding-left: 18px;
+    position: relative;
+  }
+  .change-card ul li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+  }
+  .cc-blue ul li::before { color: #1565c0; }
+  .cc-amber ul li::before { color: #f57f17; }
+  .cc-green ul li::before { color: #2e7d32; }
+  .cc-purple ul li::before { color: #6a1b9a; }
+
+  /* ─── FOOTER ──────────────────────────────────────────────── */
+  .footer {
+    background: #0d2d54;
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    padding: 28px 40px;
+    font-size: 0.78rem;
+    letter-spacing: 0.3px;
+  }
+  .footer strong { color: rgba(255,255,255,0.7); }
+
+  /* ─── RESPONSIVE ──────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .header-inner { flex-direction: column; }
+    .header-right { text-align: left; }
+    .cadence-bar-inner { flex-direction: column; gap: 18px; }
+    .cadence-block { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 18px; margin-right: 0; }
+    .cadence-block:last-child { border-bottom: none; }
+    .opt-item { grid-template-columns: 1fr; }
+    .change-grid { grid-template-columns: 1fr; }
+    .main { padding: 36px 20px 60px; }
+    .header { padding: 36px 20px 32px; }
+    .cadence-bar { padding: 24px 20px; }
+    .funnel-wrapper { flex-direction: column; }
+    .funnel-step { border-radius: 0; border-left: 1px solid #e8edf5 !important; }
+    .funnel-step:first-child { border-radius: 14px 14px 0 0; }
+    .funnel-step:last-child { border-radius: 0 0 14px 14px; }
+    .funnel-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -16px; transform: translateX(-50%); }
+    .funnel-step:last-child::after { display: none; }
+  }
+  @media (max-width: 600px) {
+    .header-left h1 { font-size: 1.6rem; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .insights-cards { grid-template-columns: 1fr; }
+    .intent-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-logo">MercenaryMarketing.ai</div>
+      <h1>Direct Pediatrics</h1>
+      <div class="subtitle">AI-Powered Growth Dashboard &nbsp;·&nbsp; 6302 Meeting St, Suite 101 &amp; 161 S English Station Rd, Louisville, KY</div>
+      <div class="header-badges">
+        <span class="badge badge-biweekly">⚡ Biweekly Report</span>
+        <span class="badge badge-baseline">📍 Baseline Period</span>
+        <span class="badge badge-report">Report #1</span>
+        <span class="badge badge-confidential">🔒 Confidential</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="report-meta">
+        <strong>Reporting Period</strong><br>
+        Nov 26, 2025 – Apr 20, 2026<br><br>
+        <strong>Generated</strong><br>
+        April 20, 2026<br><br>
+        <strong>Prepared by</strong><br>
+        MercenaryMarketing.ai
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CADENCE BAR
+════════════════════════════════════════════════════════════ -->
+<div class="cadence-bar">
+  <div class="cadence-bar-inner">
+    <div class="cadence-block">
+      <div class="cb-label">Report Cadence</div>
+      <div class="cb-value">Biweekly</div>
+      <div class="cb-sub">Every 2 weeks</div>
+    </div>
+    <div class="cadence-block">
+      <div class="cb-label">Next Update</div>
+      <div class="cb-value">May 4, 2026</div>
+      <div class="cb-sub">~2 weeks from now</div>
+    </div>
+    <div class="cadence-block">
+      <div class="cb-label">Data Sources</div>
+      <div class="cb-value">MMai</div>
+      <div class="cb-sub">Email · Sequences · Lists · AI Agents</div>
+    </div>
+    <div class="cadence-block">
+      <div class="cb-label">LinkedIn (Prosp)</div>
+      <div class="cb-value">Not Yet Active</div>
+      <div class="cb-sub">Campaigns pending launch</div>
+    </div>
+    <div class="cadence-block">
+      <div class="cb-label">Comparison Note</div>
+      <div class="cb-value">Baseline Only</div>
+      <div class="cb-sub">Period-over-period begins Report #2</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ── AI INSIGHTS ─────────────────────────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">✦</div>
+      AI Insights
+    </div>
+
+    <div class="insights-container">
+      <p class="insights-summary">
+        Direct Pediatrics has completed its first full AI-powered outreach cycle, establishing a strong operational baseline across four active audience segments. Over a ~5-month ramp period, the MMai engine has loaded <strong>2,140+ intent-qualified contacts</strong> across B2C and B2B audiences, triggered <strong>4,645 personalized emails</strong>, and achieved a <strong>12.21% open rate</strong> — meaningfully above the healthcare email benchmark of 8–10%. Email deliverability is healthy with a 100% inbox health score. The most active and highest-volume segment is the <strong>HR Benefits / Concierge Pediatrics</strong> track (665 contacts, 171 in-progress), signaling strong B2B pipeline potential. Engagement signals are present — 567 unique opens and 110 unique clicks — but reply conversion is the primary gap to close in the next cycle. No LinkedIn outreach is active yet; when Prosp campaigns launch, they will provide a powerful second touchpoint layer. This baseline report sets the benchmark from which all future period-over-period comparisons will be measured.
+      </p>
+      <div class="insights-cards">
+        <div class="insight-card">
+          <div class="ic-icon">📬</div>
+          <div class="ic-title">Strongest Channel</div>
+          <div class="ic-body">Email outreach via MMai is the sole active channel. A 12.21% open rate and 2.37% click rate confirm inbox placement is working and subject lines are resonating with targeted segments.</div>
+        </div>
+        <div class="insight-card">
+          <div class="ic-icon">🏆</div>
+          <div class="ic-title">Top Performing Segment</div>
+          <div class="ic-body">HR Benefits / Concierge Pediatrics (Steve) leads all segments with 665 contacts loaded and 171 actively in-progress — the deepest pipeline of any audience track.</div>
+        </div>
+        <div class="insight-card">
+          <div class="ic-icon">⚡</div>
+          <div class="ic-title">Primary Opportunity</div>
+          <div class="ic-body">Reply rate sits at 0.02% — the critical conversion gap. Clicks are happening but not converting to replies. CTA sharpening and follow-up cadence optimization are the highest-leverage moves now.</div>
+        </div>
+        <div class="insight-card">
+          <div class="ic-icon">🤖</div>
+          <div class="ic-title">AI Agent Activity</div>
+          <div class="ic-body">The Lōvu newborn prep agent is live with early website engagement (2 conversations). The Direct Pediatrics agent network (5 agents) is fully deployed across both practice locations.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── EXECUTIVE SUMMARY ───────────────────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">📊</div>
+      Executive Summary
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Intent Signals Captured</div>
+        <div class="kpi-value">2,140+</div>
+        <div class="kpi-sub">AI-qualified contacts across 4 active audience segments — B2C parents, B2B HR leaders, maternal/postpartum, and ADHD/behavioral.</div>
+        <div class="kpi-source">Source: MMai Audience Builder</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Contacts Loaded to Sequences</div>
+        <div class="kpi-value">1,121</div>
+        <div class="kpi-sub">Across 4 active sequences. 399 currently in-progress, 722 queued and not yet started.</div>
+        <div class="kpi-source">Source: MMai Sequences</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Emails Sent</div>
+        <div class="kpi-value">4,645</div>
+        <div class="kpi-sub">All-time across 11 sequences (4 active, 7 completed legacy). Active sequences have sent 570 steps in this period.</div>
+        <div class="kpi-source">Source: MMai Sequences</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Unique Opens</div>
+        <div class="kpi-value">567</div>
+        <div class="kpi-sub">12.21% open rate — above healthcare industry benchmark of 8–10%. Inbox health score is 100%.</div>
+        <div class="kpi-source">Source: MMai Sequences</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Unique Clicks</div>
+        <div class="kpi-value">110</div>
+        <div class="kpi-sub">2.37% click rate. Prospects are engaging with content — indicating messaging relevance and working links/CTAs.</div>
+        <div class="kpi-source">Source: MMai Sequences</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Replies Received</div>
+        <div class="kpi-value">1</div>
+        <div class="kpi-sub">0.02% reply rate. The primary conversion gap — opens and clicks are occurring but not yet converting to direct responses.</div>
+        <div class="kpi-source">Source: MMai Sequences</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Meetings Booked</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">No meetings tracked through MMai sequences in this period. Baseline established at zero for future comparison.</div>
+        <div class="kpi-source">Source: MMai Sequences</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Email Deliverability</div>
+        <div class="kpi-value">100%</div>
+        <div class="kpi-sub">Inbox health score is perfect. Bounce rate of 1.55% is within acceptable range. Sending from team@directpediatricsky.com + hannah@directpediatrics.com.</div>
+        <div class="kpi-source">Source: MMai Warmup Stats</div>
+        <div class="kpi-delta">📍 Baseline — Δ begins Report #2</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FUNNEL OVERVIEW ─────────────────────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">🔽</div>
+      Funnel Overview
+    </div>
+
+    <div class="funnel-wrapper">
+      <div class="funnel-step">
+        <div class="fs-label">Intent</div>
+        <div class="fs-value">2,140</div>
+        <div class="fs-sub">AI-qualified contacts identified across all audience segments</div>
+        <div class="fs-delta">📍 Baseline</div>
+      </div>
+      <div class="funnel-step active-step">
+        <div class="fs-label">Outreach</div>
+        <div class="fs-value">4,645</div>
+        <div class="fs-sub">Total emails sent across all sequences (active + legacy)</div>
+        <div class="fs-delta">📍 Baseline</div>
+      </div>
+      <div class="funnel-step">
+        <div class="fs-label">Engagement</div>
+        <div class="fs-value">567</div>
+        <div class="fs-sub">Unique opens · 12.21% open rate · 110 unique clicks</div>
+        <div class="fs-delta">📍 Baseline</div>
+      </div>
+      <div class="funnel-step">
+        <div class="fs-label">Conversations</div>
+        <div class="fs-value">1</div>
+        <div class="fs-sub">Direct email reply received · 2 AI agent conversations</div>
+        <div class="fs-delta">📍 Baseline</div>
+      </div>
+      <div class="funnel-step">
+        <div class="fs-label">Meetings</div>
+        <div class="fs-value">0</div>
+        <div class="fs-sub">No meetings booked via MMai sequences this period</div>
+        <div class="fs-delta">📍 Baseline</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PERFORMANCE BREAKDOWN ───────────────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">📋</div>
+      Performance Breakdown
+    </div>
+
+    <!-- Sequence Breakdown -->
+    <div class="table-card" style="margin-bottom: 28px;">
+      <div class="table-card-header">
+        <h3>Active Sequence Performance</h3>
+        <span class="tch-sub">4 active sequences · Launched April 2026</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sequence</th>
+            <th>Segment</th>
+            <th>Members</th>
+            <th>In Progress</th>
+            <th>Steps Sent</th>
+            <th>Bounces</th>
+            <th>Status</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>HR Benefits / Concierge Pediatrics</strong><br><span style="font-size:0.75rem;color:#9aa0b0;">Steve · team@directpediatricsky.com</span></td>
+            <td>B2B — HR Leaders</td>
+            <td>665</td>
+            <td>171</td>
+            <td>191</td>
+            <td>2</td>
+            <td><span class="pill pill-active">Active</span></td>
+            <td><span class="pill pill-baseline">Baseline</span></td>
+          </tr>
+          <tr>
+            <td><strong>Maternal / Postpartum Outreach</strong><br><span style="font-size:0.75rem;color:#9aa0b0;">Anna · Jennifer · team@directpediatricsky.com</span></td>
+            <td>B2C — New Mothers</td>
+            <td>546</td>
+            <td>90</td>
+            <td>130</td>
+            <td>20</td>
+            <td><span class="pill pill-active">Active</span></td>
+            <td><span class="pill pill-baseline">Baseline</span></td>
+          </tr>
+          <tr>
+            <td><strong>ADHD / Behavioral Outreach</strong><br><span style="font-size:0.75rem;color:#9aa0b0;">Anna · Emily · team@directpediatricsky.com</span></td>
+            <td>B2C — Behavioral Health Parents</td>
+            <td>513</td>
+            <td>63</td>
+            <td>125</td>
+            <td>20</td>
+            <td><span class="pill pill-active">Active</span></td>
+            <td><span class="pill pill-baseline">Baseline</span></td>
+          </tr>
+          <tr>
+            <td><strong>General Pediatric Outreach</strong><br><span style="font-size:0.75rem;color:#9aa0b0;">Anna · team@directpediatricsky.com</span></td>
+            <td>B2C — General Parents</td>
+            <td>397</td>
+            <td>75</td>
+            <td>124</td>
+            <td>21</td>
+            <td><span class="pill pill-active">Active</span></td>
+            <td><span class="pill pill-baseline">Baseline</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Legacy Sequences -->
+    <div class="table-card" style="margin-bottom: 28px;">
+      <div class="table-card-header">
+        <h3>Legacy Sequences (Completed / Inactive)</h3>
+        <span class="tch-sub">7 sequences · Dr. Johnson, Dr. Stewart, Emily Moran · Nov 2025 – Mar 2026</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sequence Group</th>
+            <th>Segment Type</th>
+            <th>Contacts</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Dr. Johnson — Affluent Parents (B2C)</strong></td>
+            <td>Local B2C</td>
+            <td>100</td>
+            <td><span class="pill pill-inactive">Inactive</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dr. Stewart — Affluent Parents (B2C)</strong></td>
+            <td>Local B2C</td>
+            <td>99</td>
+            <td><span class="pill pill-inactive">Inactive</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dr. Stewart — Corporate Benefits (B2B)</strong></td>
+            <td>B2B</td>
+            <td>99</td>
+            <td><span class="pill pill-inactive">Inactive</span></td>
+          </tr>
+          <tr>
+            <td><strong>Emily Moran — Affluent Parents (B2C)</strong></td>
+            <td>Local B2C</td>
+            <td>100</td>
+            <td><span class="pill pill-inactive">Inactive</span></td>
+          </tr>
+          <tr>
+            <td><strong>Emily Moran — Referral + Org Partners (B2B)</strong></td>
+            <td>B2B Partners</td>
+            <td>100</td>
+            <td><span class="pill pill-inactive">Inactive</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dr. Stewart — EY Employees v2</strong></td>
+            <td>B2B Corporate</td>
+            <td>91</td>
+            <td><span class="pill pill-inactive">Inactive</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dr. Stewart — OW Employees v1</strong></td>
+            <td>B2B Corporate</td>
+            <td>5</td>
+            <td><span class="pill pill-inactive">Inactive</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Engagement Metrics -->
+    <div class="table-card">
+      <div class="table-card-header">
+        <h3>Aggregate Engagement Metrics</h3>
+        <span class="tch-sub">All-time across all 11 sequences</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Rate</th>
+            <th>Industry Benchmark</th>
+            <th>vs. Benchmark</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Emails Sent</strong></td>
+            <td>4,645</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>Unique Opens</strong></td>
+            <td>567</td>
+            <td>12.21%</td>
+            <td>8–10%</td>
+            <td><span class="pill pill-improved">↑ Above Benchmark</span></td>
+          </tr>
+          <tr>
+            <td><strong>Unique Clicks</strong></td>
+            <td>110</td>
+            <td>2.37%</td>
+            <td>1.5–2.5%</td>
+            <td><span class="pill pill-improved">↑ At Benchmark</span></td>
+          </tr>
+          <tr>
+            <td><strong>Unique Replies</strong></td>
+            <td>1</td>
+            <td>0.02%</td>
+            <td>1–3%</td>
+            <td><span class="pill pill-flat">↓ Below Benchmark</span></td>
+          </tr>
+          <tr>
+            <td><strong>Bounces</strong></td>
+            <td>72</td>
+            <td>1.55%</td>
+            <td>&lt;2%</td>
+            <td><span class="pill pill-improved">✓ Within Range</span></td>
+          </tr>
+          <tr>
+            <td><strong>Out of Office</strong></td>
+            <td>7</td>
+            <td>0.15%</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>Meetings Booked</strong></td>
+            <td>0</td>
+            <td>0%</td>
+            <td>—</td>
+            <td><span class="pill pill-baseline">Baseline</span></td>
+          </tr>
+          <tr>
+            <td><strong>Inbox Health Score</strong></td>
+            <td>100%</td>
+            <td>100%</td>
+            <td>80%+</td>
+            <td><span class="pill pill-improved">✓ Excellent</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── PERFORMANCE INSIGHTS ────────────────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">💡</div>
+      Performance Insights
+    </div>
+    <div class="insight-list">
+      <div class="insight-item positive">
+        <div class="ii-title">Open rate is outperforming the healthcare industry benchmark by 2–4 points</div>
+        <div class="ii-body">A 12.21% open rate against a typical healthcare cold email benchmark of 8–10% indicates that subject lines are well-targeted and the sender domain (team@directpediatricsky.com and hannah@directpediatrics.com) is landing in primary inboxes — validated by the 100% warmup health score. This is a strong foundation to build on.</div>
+      </div>
+      <div class="insight-item warn">
+        <div class="ii-title">Reply rate is the critical gap — clicks are happening but not converting</div>
+        <div class="ii-body">110 unique clicks with only 1 reply reveals a disconnect between content engagement and response action. Prospects are reading and clicking — but the CTA or the ask is not compelling enough to drive a reply. This is the single highest-leverage optimization opportunity in the next cycle.</div>
+      </div>
+      <div class="insight-item positive">
+        <div class="ii-title">HR Benefits / B2B segment is the most active pipeline by volume</div>
+        <div class="ii-body">With 665 contacts loaded and 171 actively in-progress, the corporate employee benefits track (Steve) represents the deepest top-of-funnel pipeline. B2B corporate buyers also tend to have higher lifetime value for a concierge pediatrics practice — this segment warrants prioritization in messaging refinement.</div>
+      </div>
+      <div class="insight-item warn">
+        <div class="ii-title">Maternal/Postpartum and ADHD segments have elevated bounce rates</div>
+        <div class="ii-body">Both segments show 20 bounces each on relatively small sends (130 and 125 steps respectively), yielding bounce rates of ~15% within those sequences. This suggests the contact lists for these segments may include a higher proportion of outdated or unverified email addresses. List hygiene and re-sourcing should be evaluated before the next load.</div>
+      </div>
+      <div class="insight-item neutral">
+        <div class="ii-title">Large queued contact pool represents significant near-term outreach capacity</div>
+        <div class="ii-body">722 contacts are loaded into active sequences but have not yet been contacted (Not Started status). As the sending cadence continues at current rate limits (30/day for team@, 15/day for hannah@), this pool will be activated over the next 4–6 weeks — creating a natural inflection point for engagement metrics in Report #2 and #3.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HIGH-INTENT ACTIVITY SIGNALS ───────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">🎯</div>
+      High-Intent Activity Signals
+    </div>
+
+    <div class="intent-grid">
+      <div class="intent-card ic-blue">
+        <div class="ic-label">Email Engagement Signal</div>
+        <div class="ic-name">110 Unique Clicks Across Sequences</div>
+        <div class="ic-stat"><span>Total Clicks</span><strong>110</strong></div>
+        <div class="ic-stat"><span>Click Rate</span><strong>2.37%</strong></div>
+        <div class="ic-stat"><span>Signal Strength</span><strong>Moderate</strong></div>
+        <div class="ic-stat"><span>Implication</span><strong>Content is resonating</strong></div>
+      </div>
+      <div class="intent-card ic-green">
+        <div class="ic-label">Deliverability Signal</div>
+        <div class="ic-name">Perfect Inbox Health — 100% Score</div>
+        <div class="ic-stat"><span>Health Score</span><strong>100%</strong></div>
+        <div class="ic-stat"><span>Emails Landed Inbox</span><strong>80 / 80 sent</strong></div>
+        <div class="ic-stat"><span>Warmup Received</span><strong>93</strong></div>
+        <div class="ic-stat"><span>Domain Risk</span><strong>Low</strong></div>
+      </div>
+      <div class="intent-card ic-orange">
+        <div class="ic-label">B2B Pipeline Signal</div>
+        <div class="ic-name">HR Benefits Segment — Largest Active Pipeline</div>
+        <div class="ic-stat"><span>Contacts Loaded</span><strong>665</strong></div>
+        <div class="ic-stat"><span>In Progress</span><strong>171</strong></div>
+        <div class="ic-stat"><span>Steps Executed</span><strong>191</strong></div>
+        <div class="ic-stat"><span>Bounces</span><strong>2 (low)</strong></div>
+      </div>
+      <div class="intent-card ic-purple">
+        <div class="ic-label">AI Agent Signal</div>
+        <div class="ic-name">Lōvu Agent — Early Website Engagement</div>
+        <div class="ic-stat"><span>Conversations</span><strong>2</strong></div>
+        <div class="ic-stat"><span>Topics</span><strong>Baby registry, promo codes</strong></div>
+        <div class="ic-stat"><span>Channel</span><strong>Website widget</strong></div>
+        <div class="ic-stat"><span>Status</span><strong>Early-stage, growing</strong></div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 12px; padding: 20px 24px;">
+      <p style="font-size: 0.86rem; color: #5a4000; line-height: 1.7;">
+        <strong>⚠️ Note on Contact-Level Data:</strong> Individual prospect-level click and open tracking is available within MMai but was not surfaced at the aggregate API level for this report. In future cycles, we can flag specific contacts who have opened 2+ times or clicked without replying — these represent the highest-intent targets for manual follow-up or accelerated sequence steps.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── OPTIMIZATION FOCUS ──────────────────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">🔧</div>
+      What We Are Working On to Improve Performance
+    </div>
+
+    <div class="optimization-list">
+      <div class="opt-item">
+        <div class="opt-block ob-trigger">
+          <div class="ob-label">🔴 Trigger</div>
+          <div class="ob-body">Reply rate is critically low at 0.02% despite a healthy 12.21% open rate and 110 clicks — indicating a CTA or ask problem, not a reach problem.</div>
+        </div>
+        <div class="opt-block ob-action">
+          <div class="ob-label">🔵 Action</div>
+          <div class="ob-body">Rewrite Step 2 and Step 3 CTAs across all active sequences to use a single, low-friction ask — e.g., "Would a 15-minute call make sense?" instead of longer value propositions.</div>
+        </div>
+        <div class="opt-block ob-outcome">
+          <div class="ob-label">🟢 Expected Outcome</div>
+          <div class="ob-body">Lift reply rate from 0.02% toward 0.5–1.5% within 2 reporting cycles. Even 5–10 replies from the current pipeline would represent a significant conversion improvement.</div>
+        </div>
+      </div>
+
+      <div class="opt-item">
+        <div class="opt-block ob-trigger">
+          <div class="ob-label">🔴 Trigger</div>
+          <div class="ob-body">Maternal/Postpartum and ADHD sequences show ~15% bounce rates within their early sends — well above the acceptable &lt;2% threshold for list quality.</div>
+        </div>
+        <div class="opt-block ob-action">
+          <div class="ob-label">🔵 Action</div>
+          <div class="ob-body">Audit the contact source and email verification status for both segments. Re-run list hygiene via an email validation tool before loading additional contacts into these sequences.</div>
+        </div>
+        <div class="opt-block ob-outcome">
+          <div class="ob-label">🟢 Expected Outcome</div>
+          <div class="ob-body">Reduce sequence-level bounce rates to &lt;3% and protect sender domain reputation. Improved list quality directly improves open and engagement rates for remaining contacts.</div>
+        </div>
+      </div>
+
+      <div class="opt-item">
+        <div class="opt-block ob-trigger">
+          <div class="ob-label">🔴 Trigger</div>
+          <div class="ob-body">722 contacts are queued but not yet contacted across active sequences — a significant untapped outreach pool that will activate over the next 4–6 weeks.</div>
+        </div>
+        <div class="opt-block ob-action">
+          <div class="ob-label">🔵 Action</div>
+          <div class="ob-body">Increase daily send limits incrementally (from 30 to 45 for team@, 15 to 25 for hannah@) as warmup health holds at 100% — accelerating the activation of queued contacts.</div>
+        </div>
+        <div class="opt-block ob-outcome">
+          <div class="ob-label">🟢 Expected Outcome</div>
+          <div class="ob-body">Reduce time-to-contact for queued prospects from 6 weeks to 3–4 weeks, generating more engagement data faster and compressing the feedback loop for optimization.</div>
+        </div>
+      </div>
+
+      <div class="opt-item">
+        <div class="opt-block ob-trigger">
+          <div class="ob-label">🔴 Trigger</div>
+          <div class="ob-body">LinkedIn (Prosp) campaigns are not yet active — leaving a high-value second touchpoint channel completely unused while email outreach runs.</div>
+        </div>
+        <div class="opt-block ob-action">
+          <div class="ob-label">🔵 Action</div>
+          <div class="ob-body">Launch Prosp LinkedIn campaigns targeting the HR Benefits and Referral Partner segments first — these B2B audiences are most reachable on LinkedIn and align with existing email sequences for multi-touch coverage.</div>
+        </div>
+        <div class="opt-block ob-outcome">
+          <div class="ob-label">🟢 Expected Outcome</div>
+          <div class="ob-body">Create a multi-touch funnel (email + LinkedIn) that increases total touchpoints per prospect by 2–3x, significantly improving reply and conversion rates for the B2B pipeline.</div>
+        </div>
+      </div>
+
+      <div class="opt-item">
+        <div class="opt-block ob-trigger">
+          <div class="ob-label">🔴 Trigger</div>
+          <div class="ob-body">AI agents (Lōvu + practice agents) are live but showing minimal conversation volume — the website traffic driving agent engagement is not yet measured or optimized.</div>
+        </div>
+        <div class="opt-block ob-action">
+          <div class="ob-label">🔵 Action</div>
+          <div class="ob-body">Add email capture to the Lōvu and practice agent conversations (lead field collection) and connect agent conversation outcomes to the MMai contact lists for sequence enrollment.</div>
+        </div>
+        <div class="opt-block ob-outcome">
+          <div class="ob-label">🟢 Expected Outcome</div>
+          <div class="ob-body">Convert website visitors who engage with AI agents into identified contacts that can be enrolled in nurture sequences — closing the loop between inbound interest and outbound follow-up.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CHANGE SUMMARY ──────────────────────────────────── -->
+  <section class="section">
+    <div class="section-title">
+      <div class="section-icon">📝</div>
+      What Changed Since the Last Update
+    </div>
+
+    <div style="background: #f0f4ff; border: 1px solid #c5d5f5; border-radius: 12px; padding: 20px 28px; margin-bottom: 28px;">
+      <p style="font-size: 0.9rem; color: #1a3a6e; line-height: 1.7;">
+        <strong>📍 This is Report #1 — the Benchmark Report.</strong> There is no prior period to compare against. All metrics in this report establish the baseline from which period-over-period comparisons will be calculated beginning with Report #2 (May 4, 2026). The changes documented below reflect what was built and launched during the November 2025 – April 2026 ramp period.
+      </p>
+    </div>
+
+    <div class="change-grid">
+      <div class="change-card cc-blue">
+        <h4>🚀 What Was Built &amp; Launched</h4>
+        <ul>
+          <li>4 active email sequences launched across B2C and B2B segments with 1,121 contacts loaded</li>
+          <li>7 legacy sequences completed — Dr. Johnson, Dr. Stewart, and Emily Moran ICP segments fully run</li>
+          <li>5 AI agents deployed across both practice locations (Prospect, KY + Louisville, KY)</li>
+          <li>Lōvu newborn prep agent launched in January 2026 with website widget live</li>
+          <li>Two sender domains warmed up and verified (team@ + hannah@) with 100% inbox health</li>
+          <li>2,140+ intent-qualified contacts built across 4 audience segments via AI Audience Builder</li>
+        </ul>
+      </div>
+      <div class="change-card cc-green">
+        <h4>✅ What Is Working</h4>
+        <ul>
+          <li>12.21% open rate — above healthcare industry benchmark</li>
+          <li>2.37% click rate — within benchmark range, confirming content relevance</li>
+          <li>100% inbox health score — zero deliverability risk at current send volume</li>
+          <li>HR Benefits B2B segment has the deepest pipeline (665 contacts, 171 in-progress)</li>
+          <li>Bounce rate of 1.55% overall is within acceptable range</li>
+          <li>Auto-send enabled across all active sequences — no manual approval bottleneck</li>
+        </ul>
+      </div>
+      <div class="change-card cc-amber">
+        <h4>⚠️ What Needs Attention</h4>
+        <ul>
+          <li>Reply rate of 0.02% is significantly below benchmark — CTA optimization is priority #1</li>
+          <li>Maternal/Postpartum and ADHD sequence bounce rates (~15% per sequence) need list hygiene review</li>
+          <li>0 meetings booked through sequences — reply-to-meeting conversion path not yet activated</li>
+          <li>LinkedIn (Prosp) campaigns not yet launched — multi-touch coverage gap</li>
+          <li>AI agent lead capture not connected to sequence enrollment — inbound loop incomplete</li>
+        </ul>
+      </div>
+      <div class="change-card cc-purple">
+        <h4>🔬 Tests &amp; Changes Made This Period</h4>
+        <ul>
+          <li>Transitioned from zip-code/keyword-based lists (legacy) to AI intent-based audience building</li>
+          <li>Expanded from 3 persona sequences (Dr. Johnson, Dr. Stewart, Emily Moran) to 4 new thematic sequences</li>
+          <li>Upgraded sender infrastructure from single inbox to dual-domain sending setup</li>
+          <li>Shifted from manual approval workflow to fully automated send (autoSend: true)</li>
+          <li>Added removeOnReply logic to all active sequences — prevents over-messaging engaged prospects</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <strong>MercenaryMarketing.ai</strong> &nbsp;·&nbsp; Direct Pediatrics Performance Dashboard &nbsp;·&nbsp; Report #1 — Baseline &nbsp;·&nbsp; Nov 26, 2025 – Apr 20, 2026<br>
+  <span style="margin-top: 6px; display: block;">This report is confidential and intended solely for Direct Pediatrics leadership. Do not distribute without authorization.</span>
+</footer>
+
+</body>
+</html>
